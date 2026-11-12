@@ -110,3 +110,5 @@ LOGGING = {
         },
     },
 }
+# Si un estático no está en el manifest, usar la URL sin hash en vez de lanzar ValueError
+WHITENOISE_MANIFEST_STRICT = False
