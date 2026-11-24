@@ -370,3 +370,4 @@ CELERY_BEAT_SCHEDULE = {
 
 # Necesario para que Beat use la zona horaria de Django (no UTC)
 CELERY_BEAT_TIMEZONE = TIME_ZONE   # 'America/Mexico_City'
+CELERY_TASK_DEFAULT_QUEUE = 'erp_django'

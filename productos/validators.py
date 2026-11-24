@@ -34,6 +34,11 @@ def validar_imagen_producto(archivo) -> None:
     Raises:
         ValidationError: si alguna verificación falla.
     """
+    def validar_imagen_producto(archivo):
+    # Si la imagen ya está guardada (no es una subida nueva), no se revalida.
+        if getattr(archivo, '_committed', False):
+            return
+        # ... el resto de tu validación igual ...
     # ── 1. Verificar tamaño ───────────────────────────────────────────────
     if archivo.size > MAX_IMAGE_SIZE:
         raise ValidationError(
