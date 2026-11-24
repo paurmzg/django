@@ -1,0 +1,67 @@
+# render.yaml
+# Documentación: https://render.com/docs/infrastructure-as-code
+
+services:
+  - type: web
+    name: erp-django-utec
+    env: python
+    plan: free                     # plan gratuito para desarrollo académico
+    region: oregon                 # us-west región gratuita de Render
+    branch: main
+    buildCommand: |
+      pip install -r requirements.txt
+      python manage.py collectstatic --no-input
+      python manage.py migrate
+    startCommand: >
+      sh -c "python manage.py migrate &&
+             python manage.py createsuperuser --noinput || true &&
+             gunicorn core.wsgi --workers 2 --timeout 120 --log-file -"
+    healthCheckPath: /
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: core.settings_prod
+      - key: SECRET_KEY
+        generateValue: true        # Render genera una clave aleatoria segura
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: erp-django-db
+          property: connectionString
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      # W14-W15: Stripe
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      # W16: Celery + Redis (Key Value)
+      - key: REDIS_URL
+        sync: false
+      - key: CELERY_EMBEDDED_WORKER
+        value: "1"
+      # W17: correo con SendGrid
+      - key: SENDGRID_API_KEY
+        sync: false
+      - key: DEFAULT_FROM_EMAIL
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+
+databases:
+  - name: erp-django-db
+    databaseName: erp_db
+    user: erp_user
+    plan: free                     # PostgreSQL gratuito en Render (90 días)
+    region: oregon
+
+
+      # W18: Celery Beat embebido (tareas programadas). UNA sola instancia.
+  - key: CELERY_EMBEDDED_BEAT    # 1 = worker arranca con --beat
+    value: "1"
+  - key: REPORTE_DIARIO_HORA     # HH:MM hora de México (crontab)
+    value: "08:00"
